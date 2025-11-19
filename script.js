@@ -1,5 +1,5 @@
 // ===== KONFIGURASI =====
-const API_KEY = "7b70cd28ed1841ec99a33528251811";
+const API_KEY = "802e2bbeea93437fb6422222251911";
 const API_URL = "https://api.weatherapi.com/v1/current.json";
 const FORECAST_API = "https://api.weatherapi.com/v1/forecast.json";
 const SEARCH_API = "https://api.weatherapi.com/v1/search.json";
