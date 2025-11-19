@@ -2,7 +2,9 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1a0b2e">
+    <meta name="description" content="Weather Dashboard dengan tema Void - Cek cuaca real-time">
     <title>Void Weather Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,13 +16,20 @@
                 <span class="icon">⚡</span>
                 Void Weather
             </h1>
-            <button class="location-btn" id="locationBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                Gunakan Lokasi Saya
-            </button>
+            <div class="header-actions">
+                <div class="temp-toggle" id="tempToggle">
+                    <span class="temp-unit active" data-unit="c">°C</span>
+                    <span class="temp-divider">|</span>
+                    <span class="temp-unit" data-unit="f">°F</span>
+                </div>
+                <button class="location-btn" id="locationBtn" aria-label="Gunakan lokasi saya">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span class="btn-text">Gunakan Lokasi</span>
+                </button>
+            </div>
         </header>
 
         <!-- Search Box -->
@@ -30,11 +39,17 @@
                 id="cityInput" 
                 placeholder="Cari kota..." 
                 class="search-input"
+                autocomplete="off"
             >
-            <button class="search-btn" id="searchBtn">
+            <button class="search-btn" id="searchBtn" aria-label="Cari">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"></circle>
                     <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </button>
+            <button class="compare-btn hidden" id="compareBtn" aria-label="Bandingkan" title="Bandingkan 2 kota">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path>
                 </svg>
             </button>
         </div>
@@ -48,25 +63,126 @@
         <!-- Error Message -->
         <div class="error-message hidden" id="errorMessage">
             <p id="errorText"></p>
-            <button class="close-btn" id="closeError">×</button>
+            <button class="close-btn" id="closeError" aria-label="Tutup">×</button>
+        </div>
+
+        <!-- Weather Alerts -->
+        <div class="weather-alert hidden" id="weatherAlert">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <div class="alert-title">Peringatan Cuaca</div>
+                <div class="alert-text" id="alertText"></div>
+            </div>
+        </div>
+
+        <!-- Compare Mode -->
+        <div class="compare-container hidden" id="compareContainer">
+            <div class="compare-header">
+                <h3>Bandingkan Cuaca</h3>
+                <button class="close-compare" id="closeCompare">×</button>
+            </div>
+            <div class="compare-inputs">
+                <input type="text" id="compareCity1" placeholder="Kota 1" class="compare-input">
+                <span class="vs-text">VS</span>
+                <input type="text" id="compareCity2" placeholder="Kota 2" class="compare-input">
+                <button class="compare-search-btn" id="compareSearchBtn">Bandingkan</button>
+            </div>
+            <div class="compare-results hidden" id="compareResults"></div>
         </div>
 
         <!-- Weather Card -->
         <div class="weather-card hidden" id="weatherCard">
+            <!-- Local Time -->
+            <div class="local-time-container">
+                <div class="local-time">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span id="localTime">--:--:--</span>
+                </div>
+                <div class="local-date" id="localDate">--, -- --- ----</div>
+            </div>
+
             <div class="weather-header">
                 <div class="location-info">
                     <h2 class="city-name" id="cityName"></h2>
                     <p class="country" id="country"></p>
                 </div>
-                <div class="weather-icon" id="weatherIcon"></div>
+                <div class="weather-icon-container">
+                    <div class="weather-icon" id="weatherIcon"></div>
+                    <div class="weather-emoji" id="weatherEmoji"></div>
+                </div>
             </div>
 
             <div class="temperature-section">
-                <div class="temp-main" id="temperature"></div>
-                <div class="temp-feels">
-                    Terasa seperti <span id="feelsLike"></span>
+                <div class="temp-display">
+                    <div class="thermometer">
+                        <div class="thermometer-fill" id="thermometerFill"></div>
+                    </div>
+                    <div class="temp-info">
+                        <div class="temp-main" id="temperature"></div>
+                        <div class="temp-feels">
+                            Terasa seperti <span id="feelsLike"></span>
+                        </div>
+                        <div class="weather-condition" id="condition"></div>
+                    </div>
                 </div>
-                <div class="weather-condition" id="condition"></div>
+            </div>
+
+            <!-- Sun Times -->
+            <div class="sun-times">
+                <div class="sun-item">
+                    <div class="sun-icon">🌅</div>
+                    <div class="sun-info">
+                        <div class="sun-label">Sunrise</div>
+                        <div class="sun-time" id="sunriseTime">--:--</div>
+                    </div>
+                </div>
+                <div class="sun-divider"></div>
+                <div class="sun-item">
+                    <div class="sun-icon">🌇</div>
+                    <div class="sun-info">
+                        <div class="sun-label">Sunset</div>
+                        <div class="sun-time" id="sunsetTime">--:--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Air Quality & UV Index -->
+            <div class="quality-section">
+                <div class="quality-card" id="aqiCard">
+                    <div class="quality-icon">🌫️</div>
+                    <div class="quality-info">
+                        <div class="quality-label">Kualitas Udara</div>
+                        <div class="quality-value" id="aqiValue">--</div>
+                        <div class="quality-status" id="aqiStatus">-</div>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" id="aqiFill"></div>
+                    </div>
+                </div>
+
+                <div class="quality-card" id="uvCard">
+                    <div class="quality-icon">☀️</div>
+                    <div class="quality-info">
+                        <div class="quality-label">UV Index</div>
+                        <div class="quality-value" id="uvValue">--</div>
+                        <div class="quality-status" id="uvStatus">-</div>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" id="uvFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Tip -->
+            <div class="weather-tip" id="weatherTip">
+                <div class="tip-icon">💡</div>
+                <div class="tip-content">
+                    <div class="tip-title">Tips Cuaca</div>
+                    <div class="tip-text" id="tipText"></div>
+                </div>
             </div>
 
             <div class="weather-details">
@@ -110,6 +226,14 @@
                         <div class="detail-value" id="pressure"></div>
                         <div class="detail-label">Tekanan Udara</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Forecast -->
+            <div class="forecast-section">
+                <h3 class="forecast-title">Prakiraan 3 Hari</h3>
+                <div class="forecast-container" id="forecastContainer">
+                    <div class="forecast-loading">Memuat prakiraan...</div>
                 </div>
             </div>
         </div>
