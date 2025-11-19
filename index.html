@@ -4,247 +4,403 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1a0b2e">
-    <meta name="description" content="Weather Dashboard dengan tema Void - Cek cuaca real-time">
-    <title>Void Weather Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Portal menuju Void Weather Dashboard">
+    <title>Masuk - Void Weather</title>
+    <style>
+        /* ===== GAYA DASAR & FONT ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0615; /* Warna dasar yang lebih gelap untuk kontras */
+            color: #ffffff;
+            overflow: hidden; /* Mencegah scroll */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== KONTAINER UTAMA ===== */
+        .entrance-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(ellipse at center, #1a0b2e 0%, #0a0615 100%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+
+        .entrance-container.exiting {
+            opacity: 0;
+            transform: scale(1.5);
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { background: radial-gradient(ellipse at center, #1a0b2e 0%, #0a0615 100%); }
+            50% { background: radial-gradient(ellipse at center, #2d1b69 0%, #1a0b2e 100%); }
+        }
+
+        /* ===== KANVAS PARTIKEL VOID ===== */
+        .void-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ===== KONTEN UTAMA ===== */
+        .content {
+            z-index: 10;
+            text-align: center;
+            animation: fadeInUp 1.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-title {
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+            filter: drop-shadow(0 0 30px rgba(167, 139, 250, 0.5));
+        }
+
+        .icon {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ===== TOMBOL MASUK ===== */
+        .entrance-btn {
+            position: relative;
+            background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+            border: none;
+            color: white;
+            padding: 20px 60px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.4);
+        }
+
+        .entrance-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .entrance-btn:hover::before {
+            left: 100%;
+        }
+
+        .entrance-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(167, 139, 250, 0.6);
+        }
+
+        .entrance-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .btn-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .main-title {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .subtitle {
+                margin-bottom: 40px;
+                font-size: 1rem;
+            }
+            .entrance-btn {
+                padding: 15px 50px;
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container" id="app">
-        <!-- Header -->
-        <header class="header">
-            <h1 class="title">
+
+    <div class="entrance-container" id="entranceContainer">
+        <!-- Kanvas untuk animasi partikel Void -->
+        <canvas class="void-canvas" id="voidCanvas"></canvas>
+
+        <!-- Konten Utama -->
+        <div class="content">
+            <h1 class="main-title">
                 <span class="icon">⚡</span>
                 Void Weather
             </h1>
-            <div class="header-actions">
-                <div class="temp-toggle" id="tempToggle">
-                    <span class="temp-unit active" data-unit="c">°C</span>
-                    <span class="temp-divider">|</span>
-                    <span class="temp-unit" data-unit="f">°F</span>
-                </div>
-                <button class="location-btn" id="locationBtn" aria-label="Gunakan lokasi saya">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <span class="btn-text">Gunakan Lokasi</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- Search Box -->
-        <div class="search-box">
-            <input 
-                type="text" 
-                id="cityInput" 
-                placeholder="Cari kota..." 
-                class="search-input"
-                autocomplete="off"
-            >
-            <button class="search-btn" id="searchBtn" aria-label="Cari">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
+            <p class="subtitle">Dashboard Cuaca Real-Time</p>
+            <button class="entrance-btn" id="entranceBtn">
+                <span class="btn-text">Masuk</span>
             </button>
-            <button class="compare-btn hidden" id="compareBtn" aria-label="Bandingkan" title="Bandingkan 2 kota">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path>
-                </svg>
-            </button>
-        </div>
-
-        <!-- Loading -->
-        <div class="loading hidden" id="loading">
-            <div class="spinner"></div>
-            <p>Memuat data cuaca...</p>
-        </div>
-
-        <!-- Error Message -->
-        <div class="error-message hidden" id="errorMessage">
-            <p id="errorText"></p>
-            <button class="close-btn" id="closeError" aria-label="Tutup">×</button>
-        </div>
-
-        <!-- Weather Alerts -->
-        <div class="weather-alert hidden" id="weatherAlert">
-            <div class="alert-icon">⚠️</div>
-            <div class="alert-content">
-                <div class="alert-title">Peringatan Cuaca</div>
-                <div class="alert-text" id="alertText"></div>
-            </div>
-        </div>
-
-        <!-- Compare Mode -->
-        <div class="compare-container hidden" id="compareContainer">
-            <div class="compare-header">
-                <h3>Bandingkan Cuaca</h3>
-                <button class="close-compare" id="closeCompare">×</button>
-            </div>
-            <div class="compare-inputs">
-                <input type="text" id="compareCity1" placeholder="Kota 1" class="compare-input">
-                <span class="vs-text">VS</span>
-                <input type="text" id="compareCity2" placeholder="Kota 2" class="compare-input">
-                <button class="compare-search-btn" id="compareSearchBtn">Bandingkan</button>
-            </div>
-            <div class="compare-results hidden" id="compareResults"></div>
-        </div>
-
-        <!-- Weather Card -->
-        <div class="weather-card hidden" id="weatherCard">
-            <!-- Local Time -->
-            <div class="local-time-container">
-                <div class="local-time">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <span id="localTime">--:--:--</span>
-                </div>
-                <div class="local-date" id="localDate">--, -- --- ----</div>
-            </div>
-
-            <div class="weather-header">
-                <div class="location-info">
-                    <h2 class="city-name" id="cityName"></h2>
-                    <p class="country" id="country"></p>
-                </div>
-                <div class="weather-icon-container">
-                    <div class="weather-icon" id="weatherIcon"></div>
-                    <div class="weather-emoji" id="weatherEmoji"></div>
-                </div>
-            </div>
-
-            <div class="temperature-section">
-                <div class="temp-display">
-                    <div class="thermometer">
-                        <div class="thermometer-fill" id="thermometerFill"></div>
-                    </div>
-                    <div class="temp-info">
-                        <div class="temp-main" id="temperature"></div>
-                        <div class="temp-feels">
-                            Terasa seperti <span id="feelsLike"></span>
-                        </div>
-                        <div class="weather-condition" id="condition"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sun Times -->
-            <div class="sun-times">
-                <div class="sun-item">
-                    <div class="sun-icon">🌅</div>
-                    <div class="sun-info">
-                        <div class="sun-label">Sunrise</div>
-                        <div class="sun-time" id="sunriseTime">--:--</div>
-                    </div>
-                </div>
-                <div class="sun-divider"></div>
-                <div class="sun-item">
-                    <div class="sun-icon">🌇</div>
-                    <div class="sun-info">
-                        <div class="sun-label">Sunset</div>
-                        <div class="sun-time" id="sunsetTime">--:--</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Air Quality & UV Index -->
-            <div class="quality-section">
-                <div class="quality-card" id="aqiCard">
-                    <div class="quality-icon">🌫️</div>
-                    <div class="quality-info">
-                        <div class="quality-label">Kualitas Udara</div>
-                        <div class="quality-value" id="aqiValue">--</div>
-                        <div class="quality-status" id="aqiStatus">-</div>
-                    </div>
-                    <div class="quality-bar">
-                        <div class="quality-fill" id="aqiFill"></div>
-                    </div>
-                </div>
-
-                <div class="quality-card" id="uvCard">
-                    <div class="quality-icon">☀️</div>
-                    <div class="quality-info">
-                        <div class="quality-label">UV Index</div>
-                        <div class="quality-value" id="uvValue">--</div>
-                        <div class="quality-status" id="uvStatus">-</div>
-                    </div>
-                    <div class="quality-bar">
-                        <div class="quality-fill" id="uvFill"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Weather Tip -->
-            <div class="weather-tip" id="weatherTip">
-                <div class="tip-icon">💡</div>
-                <div class="tip-content">
-                    <div class="tip-title">Tips Cuaca</div>
-                    <div class="tip-text" id="tipText"></div>
-                </div>
-            </div>
-
-            <div class="weather-details">
-                <div class="detail-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
-                    </svg>
-                    <div>
-                        <div class="detail-value" id="windSpeed"></div>
-                        <div class="detail-label">Kecepatan Angin</div>
-                    </div>
-                </div>
-
-                <div class="detail-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-                    </svg>
-                    <div>
-                        <div class="detail-value" id="humidity"></div>
-                        <div class="detail-label">Kelembaban</div>
-                    </div>
-                </div>
-
-                <div class="detail-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <div>
-                        <div class="detail-value" id="visibility"></div>
-                        <div class="detail-label">Jarak Pandang</div>
-                    </div>
-                </div>
-
-                <div class="detail-item">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M12 6v6l4 2"></path>
-                    </svg>
-                    <div>
-                        <div class="detail-value" id="pressure"></div>
-                        <div class="detail-label">Tekanan Udara</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Forecast -->
-            <div class="forecast-section">
-                <h3 class="forecast-title">Prakiraan 3 Hari</h3>
-                <div class="forecast-container" id="forecastContainer">
-                    <div class="forecast-loading">Memuat prakiraan...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Cities -->
-        <div class="recent-cities hidden" id="recentCities">
-            <h3 class="recent-title">Kota Terakhir</h3>
-            <div class="cities-list" id="citiesList"></div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('voidCanvas');
+            const ctx = canvas.getContext('2d');
+            const entranceBtn = document.getElementById('entranceBtn');
+            const entranceContainer = document.getElementById('entranceContainer');
+
+            // Mengatur ukuran kanvas
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Kelas untuk partikel Void
+            class VoidParticle {
+                constructor() {
+                    this.reset();
+                    this.y = Math.random() * canvas.height; // Posisi Y acak saat awal
+                }
+
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = canvas.height + Math.random() * 100;
+                    this.size = Math.random() * 3 + 0.5;
+                    this.speedX = (Math.random() - 0.5) * 0.5;
+                    this.speedY = -Math.random() * 1 - 0.5;
+                    this.opacity = Math.random() * 0.5 + 0.3;
+                    this.pulse = Math.random() * 0.02 + 0.01;
+                    this.pulseDirection = 1;
+                    this.color = this.getRandomColor();
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+                }
+
+                getRandomColor() {
+                    const colors = [
+                        'rgba(167, 139, 250, ',  // Ungu
+                        'rgba(236, 72, 153, ',   // Pink
+                        'rgba(139, 92, 246, ',   // Ungu tua
+                        'rgba(59, 130, 246, ',   // Biru
+                        'rgba(168, 85, 247, '    // Violet
+                    ];
+                    return colors[Math.floor(Math.random() * colors.length)];
+                }
+
+                update() {
+                    // Gerakan spiral
+                    this.x += this.speedX + Math.sin(this.y * 0.01) * 0.5;
+                    this.y += this.speedY;
+                    this.rotation += this.rotationSpeed;
+
+                    // Efek pulse
+                    this.opacity += this.pulse * this.pulseDirection;
+                    if (this.opacity > 0.8 || this.opacity < 0.2) {
+                        this.pulseDirection *= -1;
+                    }
+
+                    // Reset jika keluar layar
+                    if (this.y < -10) {
+                        this.reset();
+                    }
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation);
+                    
+                    // Gambar partikel dengan efek glow
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 3);
+                    gradient.addColorStop(0, this.color + this.opacity + ')');
+                    gradient.addColorStop(0.5, this.color + (this.opacity * 0.5) + ')');
+                    gradient.addColorStop(1, this.color + '0)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Gambar inti partikel
+                    ctx.fillStyle = this.color + '1)';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+
+            // Kelas untuk kilatan cahaya
+            class LightFlash {
+                constructor() {
+                    this.reset();
+                }
+
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = 0;
+                    this.maxSize = Math.random() * 100 + 50;
+                    this.growthSpeed = Math.random() * 2 + 1;
+                    this.opacity = 0;
+                    this.fadeInSpeed = Math.random() * 0.05 + 0.02;
+                    this.fadeOutSpeed = Math.random() * 0.02 + 0.01;
+                    this.state = 'growing'; // growing, fading, idle
+                    this.idleTime = Math.random() * 200 + 100;
+                    this.idleCounter = 0;
+                }
+
+                update() {
+                    if (this.state === 'growing') {
+                        this.size += this.growthSpeed;
+                        this.opacity += this.fadeInSpeed;
+                        
+                        if (this.size >= this.maxSize || this.opacity >= 0.7) {
+                            this.state = 'fading';
+                        }
+                    } else if (this.state === 'fading') {
+                        this.opacity -= this.fadeOutSpeed;
+                        
+                        if (this.opacity <= 0) {
+                            this.state = 'idle';
+                            this.size = 0;
+                        }
+                    } else if (this.state === 'idle') {
+                        this.idleCounter++;
+                        if (this.idleCounter >= this.idleTime) {
+                            this.reset();
+                            this.idleCounter = 0;
+                        }
+                    }
+                }
+
+                draw() {
+                    if (this.state === 'idle') return;
+                    
+                    ctx.save();
+                    
+                    // Gambar kilatan dengan efek radial
+                    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${this.opacity * 0.8})`);
+                    gradient.addColorStop(0.2, `rgba(167, 139, 250, ${this.opacity * 0.5})`);
+                    gradient.addColorStop(0.5, `rgba(236, 72, 153, ${this.opacity * 0.3})`);
+                    gradient.addColorStop(1, 'rgba(167, 139, 250, 0)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+
+            // Membuat partikel dan kilatan
+            const particles = [];
+            const particleCount = 150;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new VoidParticle());
+            }
+
+            const lightFlashes = [];
+            const flashCount = 5;
+            for (let i = 0; i < flashCount; i++) {
+                lightFlashes.push(new LightFlash());
+            }
+
+            // Fungsi animasi
+            function animate() {
+                // Clear canvas dengan efek trail
+                ctx.fillStyle = 'rgba(10, 6, 21, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Update dan gambar kilatan cahaya (di belakang partikel)
+                lightFlashes.forEach(flash => {
+                    flash.update();
+                    flash.draw();
+                });
+
+                // Update dan gambar partikel
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            // Event listener untuk tombol masuk
+            entranceBtn.addEventListener('click', () => {
+                // Tambahkan class 'exiting' untuk memicu animasi keluar
+                entranceContainer.classList.add('exiting');
+
+                // Tunggu animasi selesai sebelum pindah halaman
+                setTimeout(() => {
+                    window.location.href = 'utama.html';
+                }, 1000); // Durasi harus sama dengan durasi transisi CSS
+            });
+
+            // Jalankan animasi
+            animate();
+        });
+    </script>
+
 </body>
 </html>
